@@ -2,7 +2,7 @@
 
 import unittest
 
-from htmlnode import HTMLNode, LeafNode
+from htmlnode import HTMLNode, LeafNode, ParentNode
 
 class TestTextNode(unittest.TestCase):
     def test_href(self):
@@ -35,7 +35,38 @@ class TestTextNode(unittest.TestCase):
     
     def test_leaf_to_html_code(self):
         node = LeafNode("code", "Hello, world!")
-        self.assertEqual(node.to_html(), "<code>Hello, world!</code>")        
+        self.assertEqual(node.to_html(), "<code>Hello, world!</code>")
+
+    def test_to_html_with_children(self):
+        child_node = LeafNode("span", "child")
+        parent_node = ParentNode("div", [child_node])
+        self.assertEqual(parent_node.to_html(), "<div><span>child</span></div>")
+
+    def test_to_html_with_grandchildren(self):
+        grandchild_node = LeafNode("b", "grandchild")
+        child_node = ParentNode("span", [grandchild_node])
+        parent_node = ParentNode("div", [child_node])
+        self.assertEqual(
+            parent_node.to_html(),
+            "<div><span><b>grandchild</b></span></div>",
+        )
+
+    def test_to_html_great_grand(self):
+        great_grandchild_node = LeafNode("b", "great_grandchild")
+        grandchild_node = ParentNode("b", [great_grandchild_node])
+        child_node = ParentNode("span", [grandchild_node])
+        parent_node = ParentNode("div", [child_node])
+        self.assertEqual(
+            parent_node.to_html(),
+            "<div><span><b><b>great_grandchild</b></b></span></div>",
+        )
+
+    #def test_to_html_no_children(self):
+    #    parent_node = ParentNode("div", None)
+    #    self.assertEqual(
+    #        parent_node.to_html(),
+    #        "Children are required.  Please pass the appropriate object(s).",
+    #    )              
 
 if __name__ == "__main__":
     unittest.main()
