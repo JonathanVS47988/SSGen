@@ -20,16 +20,16 @@ class HTMLNode:
     def __repr__(self):
         return f'HTMLNode:\n {self.tag} \n {self.value} \n {self.children} \n {self.props}'
     
-#class LeafNode(HTMLNode):
-#    def __init__(self, tag, value, props=None):
-#        super().__init__(tag, value, props)
+class LeafNode(HTMLNode):
+    def __init__(self, tag, value, props=None):
+        super().__init__(tag, value, props)
 
-#    def to_html(self):
-#        if self.value == None:
-#            raise ValueError
-#        if self.tag == None:
-#            return f'{self.value}'
-#        if self.props != None:
-#            return f'<{self.tag}{self.props}>{self.value}</{tag}>'
-#        else:
-#            return f'<{self.tag}>{self.value}</{tag}>'
+    def to_html(self):
+        if self.value == None:
+            raise ValueError
+        if self.tag == None:
+            return f'{self.value}'
+        if self.props != None:
+            return f'<{self.tag}{self.props}>{self.value}</{self.tag}>'
+        else:
+            return f'<{self.tag}>{self.value}</{self.tag}>'
