@@ -1,5 +1,7 @@
 #htmlnode.py
 
+from textnode import TextType, TextNode
+
 class HTMLNode:
 
     def __init__(self, tag=None, value=None, children=None, props=None):
@@ -16,7 +18,7 @@ class HTMLNode:
         for key, value in self.props.items():
             html_string += f' {key}="{value}"'
         return html_string
-    
+
     def __repr__(self):
         return f'HTMLNode:\n {self.tag} \n {self.value} \n {self.children} \n {self.props}'
     
@@ -52,3 +54,21 @@ class ParentNode(HTMLNode):
             child_construct += child.to_html()
     
         return f'<{self.tag}>' + child_construct + f'</{self.tag}>'
+
+def text_node_to_html_node(text_node):
+    if not isinstance(text_node.text_type, TextType):
+        raise Exception("Not a valid type.")
+        
+    if text_node.text_type == TextType.TEXT:
+        return LeafNode(None, text_node.text)
+    elif text_node.text_type == TextType.BOLD:
+        return LeafNode("b", text_node.text)
+    elif text_node.text_type == TextType.ITALIC:
+        return LeafNode("i", text_node.text)
+    elif text_node.text_type == TextType.CODE:
+        return LeafNode("code", text_node.text)
+    elif text_node.text_type == TextType.LINK:
+        return LeafNode("a", text_node.text, "href")
+    elif text_node.text_type == TextType.IMAGE:
+        return LeafNode("img","","src" "alt")
+    

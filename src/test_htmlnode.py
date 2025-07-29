@@ -2,7 +2,8 @@
 
 import unittest
 
-from htmlnode import HTMLNode, LeafNode, ParentNode
+from htmlnode import *
+#from split_nodes import split_nodes_delimiter
 
 class TestTextNode(unittest.TestCase):
     def test_href(self):
@@ -61,12 +62,17 @@ class TestTextNode(unittest.TestCase):
             "<div><span><b><b>great_grandchild</b></b></span></div>",
         )
 
-    #def test_to_html_no_children(self):
-    #    parent_node = ParentNode("div", None)
-    #    self.assertEqual(
-    #        parent_node.to_html(),
-    #        "Children are required.  Please pass the appropriate object(s).",
-    #    )              
+    def test_text(self):
+        node = TextNode("This is a text node", TextType.TEXT)
+        html_node = text_node_to_html_node(node)
+        self.assertEqual(html_node.tag, None)
+        self.assertEqual(html_node.value, "This is a text node")
+
+    # Test splitting a single code block
+    #def test_split_single(self):
+    #    node = TextNode("This is text with a `code block` word", TextType.TEXT)
+    #    new_nodes = split_nodes_delimiter([node], "`", TextType.CODE)
+    #    self.assertEqual(node, new_nodes)        
 
 if __name__ == "__main__":
     unittest.main()
