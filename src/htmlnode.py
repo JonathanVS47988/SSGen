@@ -84,30 +84,23 @@ def text_to_children(text):
     return HTMLNode_list
 
 def split_list_nodes(block, type):
-    process_node = []
-    InnerNodes_List = []
-
+    if type == 'ol':
+        process_node = block.split("\n")
+        InnerNodes_List = []
+        for item in process_node:
+            item_text = item[3:]
+            item_children = text_to_children(item_text)
+            InnerNodes_List.append(ParentNode("li", item_children))
+        return ParentNode("ol", InnerNodes_List)
+    
     if type == 'ul':
         process_node = block.split('\n')
+        InnerNodes_List = []
         for item in process_node:
-            if item.strip():
-                item_text = item[2:]
-                item_children = text_to_children(item_text)
-                li_node = HTMLNode("li", None, item_children)
-                InnerNodes_List.append(li_node)
-
-        return HTMLNode("ul" ,None, InnerNodes_List)
-    
-    if type == 'ol':
-        process_node = block.split('\n')
-        for item in process_node:
-            if item.strip():
-                item_text = item[item.find(' ')+1:]
-                item_children = text_to_children(item_text)
-                li_node = HTMLNode("li", None, item_children)
-                InnerNodes_List.append(li_node)
-
-        return HTMLNode("ol" ,None, InnerNodes_List)         
+            item_text = item[2:]
+            item_children = text_to_children(item_text)
+            InnerNodes_List.append(ParentNode("li", item_children))
+        return ParentNode("ol", InnerNodes_List)         
 
 def markdown_to_html_node(markdown):
     md_blocks = markdown_to_blocks(markdown)
@@ -117,33 +110,39 @@ def markdown_to_html_node(markdown):
         typed_block = block_to_block_type(block)
         
         if typed_block == BlockType.CODE:
-            node = []
-            node.append(text_node_to_html_node(TextNode(block,TextType.CODE)))
-            C_node = HTMLNode("code", None, node)
-            P_node = HTMLNode("pre", None, [C_node])
-            Master_HTMLNode_List.append(P_node)
+            if not block.startswith("```") or not block.endswith("```"):
+                raise ValueError("invalid code block")
+            node = block[4:-3]
+            child = text_node_to_html_node(TextNode(node,TextType.TEXT))
+            P_node = ParentNode("code",[child])
+            Master_HTMLNode_List.append(ParentNode("pre", [P_node]))
         
         elif typed_block == BlockType.HEADING:
             heading_level = 0
-            
             for char in block:
                 if char == '#':
                     heading_level +=1
                 else:
                     break
-            
+            if heading_level + 1 >= len(block):
+                raise ValueError(f"invalid heading level: {heading_level}")
+
             heading_tag = f"h{heading_level}"
-            heading_text = block[heading_level:].strip()
+            heading_text = block[heading_level + 1 :]
             HTMLNode_list = text_to_children(heading_text)
-            P_node = HTMLNode(heading_tag, None, HTMLNode_list)
+            P_node = ParentNode(heading_tag, HTMLNode_list)
             Master_HTMLNode_List.append(P_node)
         
         elif typed_block == BlockType.QUOTE:
             lines = block.split('\n')
-            mod_lines = [line[2:] if line.startswith('> ') else line for line in lines]
-            block_text = '\n'.join(mod_lines)
+            mod_lines = []
+            for line in lines:
+                if not line.startswith(">"):
+                    raise ValueError("invalid quote block")
+                mod_lines.append(line.lstrip(">").strip())
+            block_text = " ".join(mod_lines)
             HTMLNode_list = text_to_children(block_text)
-            P_node = HTMLNode("blockquote", None, HTMLNode_list)
+            P_node = ParentNode("blockquote", HTMLNode_list)
             Master_HTMLNode_List.append(P_node)
         
         elif typed_block == BlockType.UNORDERED_LIST:
@@ -153,8 +152,10 @@ def markdown_to_html_node(markdown):
             Master_HTMLNode_List.append(split_list_nodes(block, 'ol'))
         
         else:
-            HTMLNode_list = text_to_children(block)
-            P_node = HTMLNode("p", None, HTMLNode_list)
+            lines = block.split("\n")
+            paragraph = " ".join(lines)
+            HTMLNode_list = text_to_children(paragraph)
+            P_node = ParentNode("p", HTMLNode_list)
             Master_HTMLNode_List.append(P_node)
 
-    return HTMLNode("div", None, Master_HTMLNode_List)
+    return ParentNode("div", Master_HTMLNode_List, None)
