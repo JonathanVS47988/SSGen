@@ -3,6 +3,7 @@
 import unittest
 
 from split_nodes import *
+from extract_funcs import *
 
 
 class TestInlineMarkdown(unittest.TestCase):
@@ -121,6 +122,109 @@ class TestInlineMarkdown(unittest.TestCase):
             ],
             new_nodes,
         )
+    
+    def test_markdown_to_blocks(self):
+        md = """
+This is **bolded** paragraph
+
+This is another paragraph with _italic_ text and `code` here
+This is the same paragraph on a new line
+
+- This is a list
+- with items
+"""
+        blocks = markdown_to_blocks(md)
+        self.assertEqual(
+            blocks,
+            [
+                "This is **bolded** paragraph",
+                "This is another paragraph with _italic_ text and `code` here\nThis is the same paragraph on a new line",
+                "- This is a list\n- with items",
+            ],
+        )
+
+    def test_block_to_block_type_heading(self):
+        md = "## This is a heading"
+        blocks = block_to_block_type(md)
+        self.assertEqual(
+            blocks,
+            BlockType.HEADING,
+        )
+
+    def test_block_to_block_type_code(self):
+        md = """```Code block with a heading!## This is a heading```"""
+        blocks = block_to_block_type(md)
+        self.assertEqual(
+            blocks,
+            BlockType.CODE,
+        )
+
+    def test_block_to_block_type_unordered_list(self):
+        md = """- Unordered list with a heading!- ## This is a heading- Another item- And still more!"""
+        blocks = block_to_block_type(md)
+        self.assertEqual(
+            blocks,
+            BlockType.UNORDERED_LIST,
+        )
+
+    def test_block_to_block_type_uol_with_quote(self):
+        md = """- Unordered list with a heading!- ## This is a heading> And now a quote!- And still more!"""
+        blocks = block_to_block_type(md)
+        self.assertEqual(
+            blocks,
+            BlockType.UNORDERED_LIST,
+        )
+
+    def test_block_to_block_type_ordered_list(self):
+        md = """1. The start!2. ## This is a heading3.> And now a quote!4. And still more!"""
+        blocks = block_to_block_type(md)
+        self.assertEqual(
+            blocks,
+            BlockType.ORDERED_LIST,
+        )
+
+    def test_block_to_block_type_ordered_list_fail(self):
+        md = """1. The start!
+        3. ## This is a heading
+        2.> And now a quote!
+        4. And still more!"""
+        blocks = block_to_block_type(md)
+        self.assertEqual(
+            blocks,
+            BlockType.PARAGRAPH,
+        )
+
+def test_paragraphs(self):
+    md = """
+This is **bolded** paragraph
+text in a p
+tag here
+
+This is another paragraph with _italic_ text and `code` here
+
+"""
+
+    node = markdown_to_html_node(md)
+    html = node.to_html()
+    self.assertEqual(
+        html,
+        "<div><p>This is <b>bolded</b> paragraph text in a p tag here</p><p>This is another paragraph with <i>italic</i> text and <code>code</code> here</p></div>",
+    )
+
+def test_codeblock(self):
+    md = """
+```
+This is text that _should_ remain
+the **same** even with inline stuff
+```
+"""
+
+    node = markdown_to_html_node(md)
+    html = node.to_html()
+    self.assertEqual(
+        html,
+        "<div><pre><code>This is text that _should_ remain\nthe **same** even with inline stuff\n</code></pre></div>",
+    )
 
 
 if __name__ == "__main__":

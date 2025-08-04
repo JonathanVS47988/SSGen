@@ -1,6 +1,8 @@
 #htmlnode.py
 
-from textnode import TextType, TextNode
+#from textnode import TextType, TextNode
+#from extract_funcs import *
+from split_nodes import *
 
 class HTMLNode:
 
@@ -72,3 +74,87 @@ def text_node_to_html_node(text_node):
     elif text_node.text_type == TextType.IMAGE:
         return LeafNode("img","","src" "alt")
     
+def text_to_children(text):
+    HTMLNode_list = []
+    
+    text_node_list = text_to_textnodes(text)
+    for node in text_node_list:
+        HTMLNode_list.append(text_node_to_html_node(node))
+    
+    return HTMLNode_list
+
+def split_list_nodes(block, type):
+    process_node = []
+    InnerNodes_List = []
+
+    if type == 'ul':
+        process_node = block.split('\n')
+        for item in process_node:
+            if item.strip():
+                item_text = item[2:]
+                item_children = text_to_children(item_text)
+                li_node = HTMLNode("li", None, item_children)
+                InnerNodes_List.append(li_node)
+
+        return HTMLNode("ul" ,None, InnerNodes_List)
+    
+    if type == 'ol':
+        process_node = block.split('\n')
+        for item in process_node:
+            if item.strip():
+                item_text = item[item.find(' ')+1:]
+                item_children = text_to_children(item_text)
+                li_node = HTMLNode("li", None, item_children)
+                InnerNodes_List.append(li_node)
+
+        return HTMLNode("ol" ,None, InnerNodes_List)         
+
+def markdown_to_html_node(markdown):
+    md_blocks = markdown_to_blocks(markdown)
+    Master_HTMLNode_List = []
+
+    for block in md_blocks:
+        typed_block = block_to_block_type(block)
+        
+        if typed_block == BlockType.CODE:
+            node = []
+            node.append(text_node_to_html_node(TextNode(block,TextType.CODE)))
+            C_node = HTMLNode("code", None, node)
+            P_node = HTMLNode("pre", None, [C_node])
+            Master_HTMLNode_List.append(P_node)
+        
+        elif typed_block == BlockType.HEADING:
+            heading_level = 0
+            
+            for char in block:
+                if char == '#':
+                    heading_level +=1
+                else:
+                    break
+            
+            heading_tag = f"h{heading_level}"
+            heading_text = block[heading_level:].strip()
+            HTMLNode_list = text_to_children(heading_text)
+            P_node = HTMLNode(heading_tag, None, HTMLNode_list)
+            Master_HTMLNode_List.append(P_node)
+        
+        elif typed_block == BlockType.QUOTE:
+            lines = block.split('\n')
+            mod_lines = [line[2:] if line.startswith('> ') else line for line in lines]
+            block_text = '\n'.join(mod_lines)
+            HTMLNode_list = text_to_children(block_text)
+            P_node = HTMLNode("blockquote", None, HTMLNode_list)
+            Master_HTMLNode_List.append(P_node)
+        
+        elif typed_block == BlockType.UNORDERED_LIST:
+            Master_HTMLNode_List.append(split_list_nodes(block, 'ul'))
+        
+        elif typed_block == BlockType.ORDERED_LIST:
+            Master_HTMLNode_List.append(split_list_nodes(block, 'ol'))
+        
+        else:
+            HTMLNode_list = text_to_children(block)
+            P_node = HTMLNode("p", None, HTMLNode_list)
+            Master_HTMLNode_List.append(P_node)
+
+    return HTMLNode("div", None, Master_HTMLNode_List)

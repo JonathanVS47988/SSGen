@@ -1,7 +1,7 @@
 #split-nodes.py
 
 from textnode import TextType, TextNode
-from extract_funcs import extract_markdown_images, extract_markdown_links
+from extract_funcs import *
 
 def split_nodes_delimiter(old_nodes, delimiter, text_type):
     new_nodes = []
