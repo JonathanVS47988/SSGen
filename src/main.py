@@ -7,11 +7,11 @@ import sys
 def main():
 
     if sys.argv[1]:
-        basepath = str(sys.argv[1])
+        basepath = str(sys.argv[1]+"/")
     else:
         basepath = "/"
 
     copy_src_to_dest("./static", "./docs")
-    generate_pages_recursive("./content", "./template.html", "./docs",basepath)
+    generate_pages_recursive("./content", "./template.html", "./docs", basepath)
 
 main()
