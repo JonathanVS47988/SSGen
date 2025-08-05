@@ -26,15 +26,27 @@ class HTMLNode:
     
 class LeafNode(HTMLNode):
     def __init__(self, tag, value, props=None):
-        super().__init__(tag, value, props)
+        super().__init__(tag, value, None, props)
 
     def to_html(self):
-        if self.value == None:
+        if self.value == None and self.tag == None:
             raise ValueError("No value submitted.  Please submit contents to convert.")
         if self.tag == None:
             return f'{self.value}'
+        if self.tag == "img" and self.props != None:
+            all_props = []
+            for item in self.props:
+                all_props.append(f'{item}="{self.props[item]}"')
+            all_props_str = " ".join(all_props)
+            return f'<{self.tag} {all_props_str} />'
+        #if self.tag == "img" and self.props == None:
+        #    raise Exception("No image properties!  Please correct.")
         if self.props != None:
-            return f'<{self.tag}{self.props}>{self.value}</{self.tag}>'
+            all_props = []
+            for item in self.props:
+                all_props.append(f'{item}="{self.props[item]}"')
+            all_props_str = " ".join(all_props)
+            return f'<{self.tag} {all_props_str}>{self.value}</{self.tag}>'
         else:
             return f'<{self.tag}>{self.value}</{self.tag}>'
         
@@ -70,9 +82,15 @@ def text_node_to_html_node(text_node):
     elif text_node.text_type == TextType.CODE:
         return LeafNode("code", text_node.text)
     elif text_node.text_type == TextType.LINK:
-        return LeafNode("a", text_node.text, "href")
+        props = {"href": text_node.url}
+        return LeafNode("a", text_node.text, props)
     elif text_node.text_type == TextType.IMAGE:
-        return LeafNode("img","","src" "alt")
+        props = {
+            "src": text_node.url,
+            "alt": text_node.text,     
+        }
+        leaf_node = LeafNode("img", None, props)
+        return leaf_node
     
 def text_to_children(text):
     HTMLNode_list = []
